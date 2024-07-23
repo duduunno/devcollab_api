@@ -5,24 +5,17 @@ DROP DATABASE IF EXISTS devcollab;
 CREATE DATABASE devcollab;
 USE devcollab;
 
--- Tabela para armazenar informações sobre profissões
-CREATE TABLE profissoes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(45) NOT NULL
-);
-
 -- Tabela para armazenar informações básicas dos usuários
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nome_usuario VARCHAR(45) NOT NULL,
-    nome_completo VARCHAR(100) NOT NULL,
-    bigint_cpf BIGINT(11) NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    nome_usuario VARCHAR(255) NOT NULL,
+    cpf VARCHAR(20) NOT NULL,
     data_nascimento DATE NOT NULL,
     email VARCHAR(60) NOT NULL,
-    telefone BIGINT(20),
+    telefone VARCHAR(30),
     senha VARCHAR(255) NOT NULL,
-    profissao_id INT NOT NULL,
-    FOREIGN KEY (profissao_id) REFERENCES profissoes(id)
+    tipo_user VARCHAR(100) NOT NULL
 );
 
 -- Tabela para armazenar informações sobre projetos

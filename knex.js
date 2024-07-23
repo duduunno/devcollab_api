@@ -7,7 +7,7 @@ const knexDb = knex({
         port: 3306,
         user: 'aluno',
         password: 'senacrs',
-        database: 'redeSocial',
-    },
+        database: 'devcollab',
+    }
 });
 export default knexDb

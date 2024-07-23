@@ -1,19 +1,50 @@
 /* criar rotas para a entrada e saida de informaçoes */
 
-import express from 'express'
-import knexDB from './knex.js'
-import cors from 'cors'
-const app = express()
-const port = 3000
-app.use(cors())
-app.use(express.json())
+import express from 'express';
+import knexDB from './knex.js';
+import cors from 'cors';
+const app = express();
+const port = 3001;
+app.use(cors());
+app.use(express.json());
+import jwt from "jsonwebtoken";
 
+import bcrypt from "bcrypt";
+
+app.get("/", (req,res) =>{
+    res.send("estou funcionando !");
+})
 
 /* ROTA CRIAR USUARIO */
-app.post ('/usuarios', async (req, res) =>{
-    const {nome, nome_usuario, cpf, data_nascimento, email, telefone, senha} = req.body
-    await knexDB('usuarios').insert({nome, nome_usuario, cpf, data_nascimento, email, telefone, senha})
+app.post ('/register', async (req, res) =>{
+    const {nome, nome_usuario, cpf, data_nascimento, email, telefone, senha,tipo_user} = req.body
+    const hash_password = await bcrypt.hash(senha,10);
+    console.log(hash_password);
+
+    await knexDB('usuarios').insert({nome, nome_usuario, cpf, data_nascimento, email, telefone, senha: hash_password,tipo_user});
     res.status(200).json('Conta Criada')
+})
+
+/*ROTA PARA LOGIN*/
+app.post("/login", async (req,res) =>{
+    const {email,senha} = req.body;
+    const data = await knexDB("usuarios").select("*").where({email});
+
+    if(!data) return res.status(400).json({"message": "Ops, algum dado foi digitado incorretamente !"});
+    if(!email || !senha) return res.status(400).json({"message": "Dados preenchidos de forma incoreeta !"});
+    if(!await bcrypt.compare(senha,data[0].senha)) return res.status(401).json({"message": "Email ou senha digitado incorretamente !"});
+
+    console.log(data.id);
+
+    const token = jwt.sign({
+        id: data.id,
+        nome: data.nome
+    }, "peixe", { expiresIn: "24h" });
+
+    res.status(200).json({
+        "token" : token,
+        "userId" : data[0].id
+    });
 })
 
 /* ROTA PAGINA DO PERFIL DO USUARIO */
@@ -27,16 +58,19 @@ app.get ('/perfil/:id', async (req, res) =>{
             .where('usuarios.id', id);
 
     res.status(200).json({perfil})
-
-        
 })
 
 /* ROTA PAGINA DE CRIAR PROJETOS */
 
 app.post ('/criarProjeto', async (req, res) =>{
-    const { titulo, valor, descricao } = req.body
-        await knexDB('projetos').select('*').where({titulo, valor, descricao})
+    const { titulo, valor, descricao, usuario_criador } = req.body
+    await knexDB('projetos').insert({titulo, valor, descricao})
     res.status(200).json('Projeto Criado')
+})
+
+app.get("/projetos",async (req,res) =>{
+    const projetos = await knexDB("projetos").select("*");
+    return res.status(200).json({"projects": projetos});
 })
 
 /* ROTA PAGINA DE MOSTRAR PRJETOS (CERTO) */ 
